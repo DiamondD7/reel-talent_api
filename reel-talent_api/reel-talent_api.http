@@ -1,0 +1,6 @@
+@reel_talent_api_HostAddress = http://localhost:5127
+
+GET {{reel_talent_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
