@@ -3,18 +3,24 @@ using reel_talent_api.Application.Interfaces.Services;
 using reel_talent_api.Domain.Models;
 using reel_talent_api.Domain.Models.DTO;
 using reel_talent_api.Domain.Models.DTO.Requests;
+using reel_talent_api.Domain.Models.DTO.Results;
+using System.Data;
 
 namespace reel_talent_api.Infrastructure.Persistence.Services
 {
     public class AuthService : IAuthService
     {
+        private readonly IRefreshTokenRepository _refreshRepo;
         private readonly IUserRepository _userRepo;
-        public AuthService(IUserRepository userRepo)
+        private readonly IJwtService _jwtService;
+        public AuthService(IUserRepository userRepo, IJwtService jwtService, IRefreshTokenRepository refreshRepo)
         {
             _userRepo = userRepo;
+            _jwtService = jwtService;
+            _refreshRepo = refreshRepo;
         }
 
-        public async Task<UserDTO> LoginAsync(LoginRequest req)
+        public async Task<LoginResults> LoginAsync(LoginRequest req)
         {
             var user = await _userRepo.GetByEmailAsync(req);
             if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
@@ -22,12 +28,26 @@ namespace reel_talent_api.Infrastructure.Persistence.Services
                 return null;
             }
 
+            var tokenResult = await _jwtService.GenerateTokens(user);
 
-            return new UserDTO
+            //SAVING TOKEN ENTITY TO DB
+            var tokenEntity = new RefreshToken
+            {
+                UserId = user.Id,
+                TokenHash = BCrypt.Net.BCrypt.HashPassword(tokenResult.RawRefreshToken), //hashing refresh token
+                ExpiresAt = tokenResult.RefreshTokenExpiresAt,
+            };
+
+            await _refreshRepo.AddToken(tokenEntity);
+
+            var userDTO = new UserDTO
             {
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
             };
+            
+
+            return new LoginResults { User = userDTO, Tokens = tokenResult };
             //return MapToDto(user);
         }
 
@@ -58,6 +78,11 @@ namespace reel_talent_api.Infrastructure.Persistence.Services
             };
 
         }
+
+        public async Task<string> RefreshTokenHashing(string rft)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(rft);
+        } 
 
 
 

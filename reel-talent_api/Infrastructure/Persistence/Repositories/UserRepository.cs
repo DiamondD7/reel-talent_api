@@ -21,7 +21,10 @@ namespace reel_talent_api.Infrastructure.Persistence.Repositories
 
         public async Task<User?> GetByEmailAsync(LoginRequest req)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Email == req.Email);
+            return await _context.Users
+                            .Include(x => x.Talent)
+                            .Include(x => x.CastingProfile)
+                            .FirstOrDefaultAsync(x => x.Email == req.Email);
         }
 
         public async Task<bool> EmailExistAsync(string email)

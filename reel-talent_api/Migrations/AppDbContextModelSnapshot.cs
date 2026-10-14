@@ -43,6 +43,41 @@ namespace reel_talent_api.Migrations
                     b.ToTable("CastingProfiles");
                 });
 
+            modelBuilder.Entity("reel_talent_api.Domain.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReplacedByTokenId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("reel_talent_api.Domain.Models.Talent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -241,6 +276,17 @@ namespace reel_talent_api.Migrations
                     b.HasOne("reel_talent_api.Domain.Models.User", "User")
                         .WithOne("CastingProfile")
                         .HasForeignKey("reel_talent_api.Domain.Models.CastingProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("reel_talent_api.Domain.Models.RefreshToken", b =>
+                {
+                    b.HasOne("reel_talent_api.Domain.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

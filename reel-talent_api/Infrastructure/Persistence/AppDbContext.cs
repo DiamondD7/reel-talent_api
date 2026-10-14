@@ -18,8 +18,15 @@ namespace reel_talent_api.Infrastructure.Persistence
         public DbSet<TalentLanguage>TalentLanguages { get; set; }
         public DbSet<TalentExperience> TalentExperiences { get; set; }
 
+        public DbSet<RefreshToken>RefreshTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasIndex(t => t.TokenHash).IsUnique();
+            });
+
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(t => t.Email).IsUnique();
