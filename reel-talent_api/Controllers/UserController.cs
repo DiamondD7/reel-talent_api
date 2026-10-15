@@ -20,46 +20,15 @@ namespace reel_talent_api.Controllers
             _authService = authService;
         }
 
-        [HttpPost("signin")]
-        public async Task<IActionResult> GetUserByLoginCred([FromBody] LoginRequest req)
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetUserDetails()
         {
-            var result = await _authService.LoginAsync(req);
-            if (result == null)
-            {
-                return Unauthorized("Invalid email or password");
-            }
-
-            SetAuthCookies(result.Tokens);
-
-            return Ok(result.User);
+            return Ok("here");
         }
 
-        [HttpPost("signup")]
-        public async Task<IActionResult>AddTalentUser(SignupRequest req)
-        {
-            var userCreation = await _authService.SignupAsync(req);
+        
 
-            return CreatedAtAction(nameof(GetUserByLoginCred), userCreation);
-        }
-
-        private void SetAuthCookies(TokenResult tokens)
-        {
-            Response.Cookies.Append("accessToken", tokens.AccessToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = tokens.AccessTokenExpiresAt
-            });
-
-            Response.Cookies.Append("refreshToken", tokens.RawRefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Path = "/api/auth/refresh",
-                Expires = tokens.RefreshTokenExpiresAt
-            });
-        }
+        
     }
 }

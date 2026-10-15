@@ -1,10 +1,13 @@
-﻿using reel_talent_api.Application.Interfaces.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
+using reel_talent_api.Application.Interfaces.Repositories;
 using reel_talent_api.Application.Interfaces.Services;
 using reel_talent_api.Domain.Models;
 using reel_talent_api.Domain.Models.DTO;
 using reel_talent_api.Domain.Models.DTO.Requests;
 using reel_talent_api.Domain.Models.DTO.Results;
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace reel_talent_api.Infrastructure.Persistence.Services
 {
@@ -30,11 +33,12 @@ namespace reel_talent_api.Infrastructure.Persistence.Services
 
             var tokenResult = await _jwtService.GenerateTokens(user);
 
+
             //SAVING TOKEN ENTITY TO DB
             var tokenEntity = new RefreshToken
             {
                 UserId = user.Id,
-                TokenHash = BCrypt.Net.BCrypt.HashPassword(tokenResult.RawRefreshToken), //hashing refresh token
+                TokenHash = Hash(tokenResult.RawRefreshToken), //hashing refresh token
                 ExpiresAt = tokenResult.RefreshTokenExpiresAt,
             };
 
@@ -79,11 +83,64 @@ namespace reel_talent_api.Infrastructure.Persistence.Services
 
         }
 
-        public async Task<string> RefreshTokenHashing(string rft)
+        public async Task<LoginResults> RefreshTokenAsync(string refreshToken)
         {
-            return BCrypt.Net.BCrypt.HashPassword(rft);
-        } 
+            var hashToken = Hash(refreshToken);
+            var checkToken = await _refreshRepo.GetByHashAsync(hashToken);
 
+            if (checkToken == null)
+            {
+                return null;
+            }
+
+
+            //this is the one for when the token has already been revoked.
+            if(checkToken.RevokedAt != null)
+            {
+                await _refreshRepo.RevokeAllTokensAsync(checkToken.UserId);
+                return null;
+            }
+
+            if(DateTime.UtcNow > checkToken.ExpiresAt)
+            {
+                return null;
+            }
+
+            var generateToken = await _jwtService.GenerateTokens(checkToken.User);
+            var tokenEntity = new RefreshToken
+            {
+                UserId = checkToken.User.Id,
+                TokenHash = Hash(generateToken.RawRefreshToken), //hashing refresh token
+                ExpiresAt = generateToken.RefreshTokenExpiresAt,
+            };
+
+            await _refreshRepo.AddToken(tokenEntity);
+            await _refreshRepo.RevokeCurrentToken(checkToken, tokenEntity.TokenHash);
+
+            var userDTO = new UserDTO
+            {
+                Email = checkToken.User.Email,
+                Role = checkToken.User.Role,
+            };
+             
+
+            return new LoginResults { User = userDTO, Tokens = generateToken };
+
+        }
+
+        public async Task LogoutAsync(string token)
+        {
+            var hashedToken = Hash(token);
+            var currentToken = await _refreshRepo.GetByHashAsync(hashedToken);
+            await _refreshRepo.RevokeLogoutAsync(currentToken);
+        }
+
+
+        private string Hash(string rawToken)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+            return Convert.ToHexString(bytes);
+        }
 
 
 

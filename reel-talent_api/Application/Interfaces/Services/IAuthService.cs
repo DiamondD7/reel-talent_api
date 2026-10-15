@@ -8,6 +8,7 @@ namespace reel_talent_api.Application.Interfaces.Services
     {
         Task<LoginResults> LoginAsync(LoginRequest req);
         Task<UserDTO?> SignupAsync(SignupRequest req);
-        Task<string> RefreshTokenHashing(string rft);
+        Task<LoginResults> RefreshTokenAsync(string refreshToken);
+        Task LogoutAsync(string token);
     }
 }
