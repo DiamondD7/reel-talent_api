@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using reel_talent_api.Application.Interfaces.Services;
+using reel_talent_api.Domain.Models.DTO;
 using reel_talent_api.Domain.Models.DTO.Requests;
 using reel_talent_api.Domain.Models.DTO.Results;
 
@@ -38,6 +40,10 @@ namespace reel_talent_api.Controllers
         public async Task<IActionResult> AddTalentUser(SignupRequest req)
         {
             var userCreation = await _authService.SignupAsync(req);
+            if(userCreation == null)
+            {
+                return BadRequest("email is already taken");
+            }
 
             return CreatedAtAction(nameof(GetUserByLoginCred), userCreation);
         }
@@ -52,6 +58,19 @@ namespace reel_talent_api.Controllers
             return NoContent();
         }
 
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleSignupValidation([FromBody]GoogleSignupRequest req)
+        {
+            var result = await _authService.GoogleSignupAsync(req);
+            if(result == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(result);
+
+
+        }
 
 
         [HttpPost("refresh"), AllowAnonymous]

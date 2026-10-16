@@ -14,8 +14,9 @@ namespace reel_talent_api.Domain.Models.DTO.Requests
         [Required, EmailAddress, MaxLength(254)]
         public string Email { get; set; } = string.Empty;
 
-        [Required, MinLength(8)]
-        public string Password { get; set; } = string.Empty;
+        public string? Password { get; set; }  //nullable for when user uses google or other providers.
+        public string? ProviderId { get; set; }
+        public bool OtherProvider { get; set; } = false; //if true then its Google, if false then traditional password email combo
 
         public UserRole Role { get; set; }
     }

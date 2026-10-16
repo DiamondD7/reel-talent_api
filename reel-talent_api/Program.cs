@@ -68,10 +68,10 @@ namespace reel_talent_api
 
             // Configure the HTTP request pipeline.
 
+            app.UseCors("AllowSpecificOrigin");
             app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseCors("AllowSpecificOrigin");
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();

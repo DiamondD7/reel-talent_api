@@ -4,6 +4,7 @@ using reel_talent_api.Application.Interfaces.Repositories;
 using reel_talent_api.Domain.Models;
 using reel_talent_api.Domain.Models.DTO;
 using reel_talent_api.Domain.Models.DTO.Requests;
+using reel_talent_api.Domain.Models.DTO.Results;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -63,6 +64,19 @@ namespace reel_talent_api.Infrastructure.Persistence.Repositories
                 
             }
             
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddProviderAsync(GooglePayloadResult payload)
+        {
+            var newUser = new OtherSignup
+            {
+                UserId = payload.UserId,
+                Provider = "Google",
+                ProviderUserId = payload.ProviderId
+            };
+
+            _context.OtherSignups.Add(newUser);
             await _context.SaveChangesAsync();
         }
     }

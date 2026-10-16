@@ -11,12 +11,12 @@ namespace reel_talent_api.Domain.Models
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty;
+        public string? PasswordHash { get; set; }
         public UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public Talent? Talent { get; set; }
         public CastingProfile? CastingProfile { get; set; }
+        public ICollection<OtherSignup> OtherSignups { get; set; } = new List<OtherSignup>();
     }
 }

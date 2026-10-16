@@ -10,5 +10,6 @@ namespace reel_talent_api.Application.Interfaces.Services
         Task<UserDTO?> SignupAsync(SignupRequest req);
         Task<LoginResults> RefreshTokenAsync(string refreshToken);
         Task LogoutAsync(string token);
+        Task<GooglePayloadResult> GoogleSignupAsync(GoogleSignupRequest req);
     }
 }

@@ -43,6 +43,35 @@ namespace reel_talent_api.Migrations
                     b.ToTable("CastingProfiles");
                 });
 
+            modelBuilder.Entity("reel_talent_api.Domain.Models.OtherSignup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ProviderUserId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Provider", "ProviderUserId")
+                        .IsUnique();
+
+                    b.ToTable("OtherSignups");
+                });
+
             modelBuilder.Entity("reel_talent_api.Domain.Models.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -257,7 +286,6 @@ namespace reel_talent_api.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Role")
@@ -276,6 +304,17 @@ namespace reel_talent_api.Migrations
                     b.HasOne("reel_talent_api.Domain.Models.User", "User")
                         .WithOne("CastingProfile")
                         .HasForeignKey("reel_talent_api.Domain.Models.CastingProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("reel_talent_api.Domain.Models.OtherSignup", b =>
+                {
+                    b.HasOne("reel_talent_api.Domain.Models.User", "User")
+                        .WithMany("OtherSignups")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -359,6 +398,8 @@ namespace reel_talent_api.Migrations
             modelBuilder.Entity("reel_talent_api.Domain.Models.User", b =>
                 {
                     b.Navigation("CastingProfile");
+
+                    b.Navigation("OtherSignups");
 
                     b.Navigation("Talent");
                 });

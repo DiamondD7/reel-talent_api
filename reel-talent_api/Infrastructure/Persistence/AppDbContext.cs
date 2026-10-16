@@ -11,6 +11,7 @@ namespace reel_talent_api.Infrastructure.Persistence
         }
 
         public DbSet<User>Users { get; set; }
+        public DbSet<OtherSignup>OtherSignups { get; set; }
         public DbSet<CastingProfile>CastingProfiles { get; set; }
         public DbSet<Talent> Talents { get; set; }
         public DbSet<TalentDetails> TalentDetails { get; set; }
@@ -37,6 +38,27 @@ namespace reel_talent_api.Infrastructure.Persistence
                 entity.HasOne(t => t.User)
                 .WithOne(t => t.CastingProfile)
                 .HasForeignKey<CastingProfile>(t => t.UserId);
+            });
+
+            modelBuilder.Entity<OtherSignup>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Provider)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(e => e.ProviderUserId)
+                      .IsRequired()
+                      .HasMaxLength(255);
+
+                entity.HasIndex(e => new { e.Provider, e.ProviderUserId })
+                      .IsUnique();
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.OtherSignups)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
 
