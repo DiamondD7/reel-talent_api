@@ -28,7 +28,7 @@ namespace reel_talent_api.Controllers
             var result = await _authService.LoginAsync(req);
             if (result == null)
             {
-                return Unauthorized("Invalid email or password");
+                return BadRequest("Invalid email or password");
             }
 
             SetAuthCookies(result.Tokens);

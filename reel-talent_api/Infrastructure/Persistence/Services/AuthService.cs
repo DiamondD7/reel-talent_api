@@ -72,7 +72,7 @@ namespace reel_talent_api.Infrastructure.Persistence.Services
             var user = new User
             {
                 Email = req.Email,
-                PasswordHash = string.IsNullOrEmpty(req.Password) ? "" : hashedPW,
+                PasswordHash = string.IsNullOrEmpty(req.Password) ? null : hashedPW,
                 Role = req.Role,
                 CreatedAt = DateTime.UtcNow
             };
