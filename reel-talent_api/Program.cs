@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using reel_talent_api.Application.Interfaces.Repositories;
 using reel_talent_api.Application.Interfaces.Services;
@@ -12,8 +14,33 @@ namespace reel_talent_api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var config = builder.Configuration;
 
             // Add services to the container.
+
+            //JWT-Auth
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(x =>
+                {
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = config["JwtSettings:Issuer"],
+                        ValidAudience = config["JwtSettings:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(config["Jwt:Key"]!)),
+                        ValidateIssuer = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ClockSkew = TimeSpan.Zero,
+                    };
+                    x.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            context.Token = context.Request.Cookies["accessToken"];
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
 
             builder.Services.AddCors(options =>
             {
@@ -27,19 +54,25 @@ namespace reel_talent_api
                     });
             });
 
+            builder.Services.AddAuthorization();
             builder.Services.AddControllers();
+
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IJwtService, JwtService>();
+
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("connectionString")));
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
 
+            app.UseCors("AllowSpecificOrigin");
             app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseCors("AllowSpecificOrigin");
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

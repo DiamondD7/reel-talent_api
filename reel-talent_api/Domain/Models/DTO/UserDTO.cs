@@ -9,6 +9,7 @@ namespace reel_talent_api.Domain.Models.DTO
         public UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public TalentDTO Talent { get; set; }
+        public TalentDTO? Talent { get; set; }
+        public CastingProfileDTO? CastingProfile { get; set; }
     }
 }

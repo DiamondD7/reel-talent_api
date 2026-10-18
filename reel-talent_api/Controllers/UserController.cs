@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using reel_talent_api.Application.Interfaces.Repositories;
 using reel_talent_api.Application.Interfaces.Services;
+using reel_talent_api.Domain.Models;
 using reel_talent_api.Domain.Models.DTO;
 using reel_talent_api.Domain.Models.DTO.Requests;
+using reel_talent_api.Domain.Models.DTO.Results;
 
 namespace reel_talent_api.Controllers
 {
@@ -18,24 +20,15 @@ namespace reel_talent_api.Controllers
             _authService = authService;
         }
 
-        [HttpPost("signin")]
-        public async Task<IActionResult> GetUserByLoginCred([FromBody] LoginRequest req)
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetUserDetails()
         {
-            var talent = await _authService.LoginAsync(req);
-            if (talent == null)
-            {
-                return Unauthorized("Invalid email or password");
-            }
-
-            return Ok(talent);
+            return Ok("here");
         }
 
-        [HttpPost("signup")]
-        public async Task<IActionResult>AddTalentUser(SignupRequest req)
-        {
-            var userCreation = await _authService.SignupAsync(req);
+        
 
-            return CreatedAtAction(nameof(GetUserByLoginCred), userCreation);
-        }
+        
     }
 }
